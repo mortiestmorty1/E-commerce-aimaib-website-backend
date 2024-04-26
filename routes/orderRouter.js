@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const orderController = require('../controllers/orderController');
-const isAuthorized = require('../middleware/auth');
+const { isAuthorized } = require('../middleware/auth');
 
 router.post('/placeOrder', isAuthorized, orderController.placeOrder);
 router.put('/cancelOrder/:orderId', isAuthorized, orderController.cancelOrder);

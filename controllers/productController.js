@@ -1,7 +1,7 @@
-const Product = require('../models/Product');
-const Category = require('../models/Category');
+const Product = require('../models/product');
+const Category = require('../models/catagories');
 
-// Add a new product
+
 let addProduct = (req, res) => {
     console.log("addProduct controller called!");
     const { name, price, description, images, genderType, category, stock } = req.body;
@@ -34,6 +34,7 @@ let addProduct = (req, res) => {
             res.status(404).send({ message: "Error finding the category", error: err });
         });
 };
+
 
 // Update an existing product
 let updateProduct = (req, res) => {
