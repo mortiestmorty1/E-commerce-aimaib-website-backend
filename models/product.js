@@ -15,7 +15,11 @@ const productSchema = new mongoose.Schema({
     description: {
         type: String
     },
-    images: [String],
+    images: [{
+        url: String,
+        public_id: String
+    }],
+
     genderType: {
         type: String,
         required: true,
