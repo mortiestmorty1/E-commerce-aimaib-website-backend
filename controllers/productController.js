@@ -1,68 +1,88 @@
 const Product = require('../models/product');
-const Category = require('../models/catagories');
+const multer = require('multer');
+const { cloudinary } = require('../config/cloudinaryConfig');
+const upload = multer({ storage: multer.memoryStorage() });
 
+const uploadImageToCloudinary = (buffer) => {
+    return new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream({
+            resource_type: 'auto',
+            folder: 'E-commerce' 
+        }, (error, result) => {
+            if (error) reject(error);
+            else resolve(result.url); 
+        }).end(buffer);
+    });
+};
 
 let addProduct = (req, res) => {
-    console.log("addProduct controller called!");
-    const { name, price, description, images, genderType, category, stock } = req.body;
+    upload.single('image')(req, res, async function (err) {
+        if (err instanceof multer.MulterError || err) {
+            return res.status(500).json({ message: "File upload error", error: err.message });
+        }
 
-    Category.findById(category)
-        .then(foundCategory => {
-            if (!foundCategory) {
-                return res.status(404).send({ message: "Category not found" });
-            }
-            
+        try {
+            const imageUrl = req.file ? await uploadImageToCloudinary(req.file.buffer) : null;
+            if (!imageUrl) return res.status(400).send({ message: "Image upload failed" });
+
+            const { name, price, description, genderType, category, sizes, stock } = req.body;
+            const sizesArray = JSON.parse(sizes);
             const newProduct = new Product({
                 name,
                 price,
                 description,
-                images,
+                images: [imageUrl],
                 genderType,
                 category,
+                sizes: sizesArray,
                 stock
             });
 
-            newProduct.save()
-                .then(product => {
-                    res.status(201).send({ message: "Product added successfully!", product });
-                })
-                .catch(err => {
-                    res.status(400).send({ message: "Error occurred while adding the product", error: err });
-                });
-        })
-        .catch(err => {
-            res.status(404).send({ message: "Error finding the category", error: err });
-        });
+            const product = await newProduct.save();
+            res.status(201).send({ message: "Product added successfully!", product });
+        } catch (error) {
+            res.status(500).send({ message: "Error occurred while adding the product", error: error.message });
+        }
+    });
 };
 
-
-// Update an existing product
 let updateProduct = (req, res) => {
-    console.log("updateProduct controller called!");
-    const { productId } = req.params;
-    const { name, price, description, images, genderType, category, stock } = req.body;
+    upload.single('image')(req, res, async function (err) {
+        if (err instanceof multer.MulterError || err) {
+            return res.status(500).json({ message: "File upload error", error: err.message });
+        }
 
-    Product.findByIdAndUpdate(productId, {
-        name,
-        price,
-        description,
-        images,
-        genderType,
-        category,
-        stock
-    }, { new: true })
-        .then(updatedProduct => {
-            if (!updatedProduct) {
-                return res.status(404).send({ message: "Product not found" });
+        const { name, price, description, genderType, category, sizes, stock } = req.body;
+        const sizesArray = JSON.parse(sizes);
+        let updateObject = {
+            name,
+            price,
+            description,
+            genderType,
+            category,
+            sizes: sizesArray,
+            stock
+        };
+        try {
+            if (req.file) {
+                const imageUrl = await uploadImageToCloudinary(req.file.buffer);
+                updateObject.images = [imageUrl];
             }
+
+            const updatedProduct = await Product.findByIdAndUpdate(req.params.productId, updateObject, { new: true });
+            if (!updatedProduct) return res.status(404).send({ message: "Product not found" });
+
             res.status(200).send({ message: "Product updated successfully", product: updatedProduct });
-        })
-        .catch(err => {
-            res.status(500).send({ message: "Error updating the product", error: err });
-        });
+        } catch (error) {
+            res.status(500).send({ message: "Error updating the product", error: error.message });
+        }
+        console.log("Product ID:", req.params.productId);
+console.log("Update Object:", updateObject);
+
+    });
 };
 
-// Get all products
+
 let getAllProducts = (req, res) => {
     console.log("getAllProducts controller called!");
     Product.find({})
@@ -74,7 +94,7 @@ let getAllProducts = (req, res) => {
         });
 };
 
-// Get a single product by ID
+
 let getProductById = (req, res) => {
     console.log("getProductById controller called!");
     const { productId } = req.params;

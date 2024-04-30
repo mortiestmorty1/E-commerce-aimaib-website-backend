@@ -1,5 +1,8 @@
 const mongoose = require('mongoose');
-
+const sizeSchema = new mongoose.Schema({
+    size: { type: String, required: true },
+    available: { type: Boolean, default: true }
+});
 const productSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -19,9 +22,31 @@ const productSchema = new mongoose.Schema({
         enum: ['Men', 'Women']
     },
     category: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Category'
+        type: String,
+        required: true,
+        enum:[
+            "Shirts",
+            "T-Shirts",
+            "Jeans",
+            "Jackets",
+            "Sweaters",
+            "pants",
+            "Shorts",
+            "Hoodies",
+            "hats",
+            "caps",
+            "belts",
+            "bracelets",
+            "wallets",
+            "socks",
+            "rings",
+            "necklaces",
+            "purses",
+            "bags",
+            "tops"
+        ]
     },
+    sizes: [sizeSchema],
     stock: {
         type: Number,
         required: true
@@ -33,3 +58,5 @@ const productSchema = new mongoose.Schema({
 });
 
 const Product = mongoose.model('Product', productSchema);
+
+module.exports = Product;

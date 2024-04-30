@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const User = require('../models/User'); 
+const User = require('../models/User');
+
 
 
 let signup = (req, res) => {
@@ -16,8 +17,8 @@ let signup = (req, res) => {
                     return res.status(500).send({ message: "Error hashing password", error: err });
                 }
                 const newUser = new User({
-                    firstname: req.body.firstname,
-                    lastname: req.body.lastname,
+                    firstName: req.body.firstName,
+                    lastName: req.body.lastName,
                     email: req.body.email,
                     password: hashedPassword,
                     PhoneNumber: req.body.PhoneNumber,
@@ -28,7 +29,6 @@ let signup = (req, res) => {
                     country: req.body.country,
                     role: req.body.role,
                 });
-
                 newUser.save()
                     .then(user => {
                         res.status(200).send({ message: "User account created successfully!", user });
@@ -62,7 +62,7 @@ let login = (req, res) => {
                 const token = jwt.sign(
                     { id: user._id, email: user.email, role: user.role },
                     process.env.SECRET_KEY,
-                    { expiresIn: '2h' }
+                    { expiresIn: '10h' }
                 );
 
                 res.status(200).send({
@@ -73,7 +73,9 @@ let login = (req, res) => {
                         email: user.email,
                         role: user.role
                     }
+                    
                 });
+            console.log("token!", token);
             });
         })
         .catch(err => {

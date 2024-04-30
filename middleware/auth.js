@@ -14,7 +14,7 @@ let isAuthorized = (req, res, next) => {
         req.user = decoded;
         console.log("the token is for:", req.user.email);
 
-        if (req.user.role === "user" || req.user.role === "admin") {
+        if (req.user.role === "User" || req.user.role === "Admin") {
             next();
         } else {
             return res.status(401).send({ message: "You are not authorized to access this route" });
